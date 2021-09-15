@@ -1,0 +1,162 @@
+1. Konsep:
+a. Sebutkan entities (sing.: entity) yang terdapat pada ERD terlampir!
+/* jawaban disini */
+	User
+	Song
+	Album
+	Artis
+	Genre
+b. Terdapat 6 relasi dalam ERD terlampir, sebutkan jenis relasi dari masing-masing relasi!
+/* jawaban disini */
+Album created by Artist: one-to-one (misal)
+...dst...
+	User Chooses Song: Many to Many
+	Album Contains Song: One to Many
+	Album Created by Artist: Many to One
+	Album Consists of Genre: Many to One
+	Song Prepare Artist: Many to One
+	Song Corresponds To Genre: Many to One
+c. Dari 7 Foreign Key (FK), ada 1 FK yang tidak diperlukan. Pilih FK apa dan dari tabel mana dan sertakan alasanmu!
+/* jawaban disini */
+	fk song di tabel album karena fk album sudah ada di tabel Songs
+2. Tuliskan query SQL untuk mengimplementasikan desain atau ERD (Entity Relationship Diagram) terlampir!
+Perhatikan atribut-atribut, tipe data, dan relasi setiap tabel!
+Atribut yang tidak perlu:
+User: FirstName, LastName, Email, Password, SignUpDate, ProfilePic.
+Song: Duration, Path, AlbumOrder, Plays.
+Album: ArtworkPath.
+Ingat, many-to-many perlu tabel penghubung! (Jenis relasi berdasarkan garis penghubung bisa dilihat
+disini https://d2slcw3kip6qmk.cloudfront.net/marketing/pages/chart/erd-symbols/ERD-Notation.PNG)
+
+Tulis query di bawah sini:
+/* query disini */
+	a. Tabel Gendre
+	CREATE TABLE IF NOT EXISTS public.genre
+	(
+		id integer NOT NULL,
+		name character varying(50) COLLATE pg_catalog."default",
+		CONSTRAINT genre_pkey PRIMARY KEY (id)
+	)
+
+	b. tabel Albun
+	CREATE TABLE IF NOT EXISTS public.album
+	(
+		"Id" integer NOT NULL,
+		title character varying(250) COLLATE pg_catalog."default" NOT NULL,
+		artist integer,
+		gendre integer,
+		CONSTRAINT album_pkey PRIMARY KEY ("Id"),
+		CONSTRAINT artist_fk FOREIGN KEY (artist)
+			REFERENCES public.artist (id) MATCH SIMPLE
+			ON UPDATE NO ACTION
+			ON DELETE NO ACTION
+			NOT VALID,
+		CONSTRAINT gendre_fk FOREIGN KEY (gendre)
+			REFERENCES public.genre (id) MATCH SIMPLE
+			ON UPDATE NO ACTION
+			ON DELETE NO ACTION
+			NOT VALID
+	)
+
+	c. Tabel Artist
+	CREATE TABLE IF NOT EXISTS public.artist
+	(
+		id integer NOT NULL,
+		name character varying(50) COLLATE pg_catalog."default" NOT NULL,
+		CONSTRAINT artist_pkey PRIMARY KEY (id)
+	)
+
+	d. Tabel Playlist
+	CREATE TABLE IF NOT EXISTS public.playlist
+	(
+		"ID" integer NOT NULL,
+		"user" integer,
+		song integer,
+		CONSTRAINT playlist_pkey PRIMARY KEY ("ID"),
+		CONSTRAINT fk_song FOREIGN KEY (song)
+			REFERENCES public.songs (id_song) MATCH SIMPLE
+			ON UPDATE NO ACTION
+			ON DELETE NO ACTION
+			NOT VALID,
+		CONSTRAINT fk_user FOREIGN KEY ("user")
+			REFERENCES public.users (id_user) MATCH SIMPLE
+			ON UPDATE NO ACTION
+			ON DELETE NO ACTION
+			NOT VALID
+	)
+
+	e. Tabel Songs
+	CREATE TABLE IF NOT EXISTS public.songs
+	(
+		id_song integer NOT NULL,
+		title character varying(250) COLLATE pg_catalog."default",
+		artist integer,
+		album integer,
+		gendre integer,
+		CONSTRAINT song_pkey PRIMARY KEY (id_song),
+		CONSTRAINT song_artist_fkey FOREIGN KEY (artist)
+			REFERENCES public.artist (id) MATCH SIMPLE
+			ON UPDATE NO ACTION
+			ON DELETE NO ACTION
+			NOT VALID,
+		CONSTRAINT songs_album_fkey FOREIGN KEY (album)
+			REFERENCES public.album ("Id") MATCH SIMPLE
+			ON UPDATE NO ACTION
+			ON DELETE NO ACTION
+			NOT VALID,
+		CONSTRAINT songs_gendre_fkey FOREIGN KEY (gendre)
+			REFERENCES public.genre (id) MATCH SIMPLE
+			ON UPDATE NO ACTION
+			ON DELETE NO ACTION
+			NOT VALID
+	)
+
+	f.Tabel Users
+	CREATE TABLE IF NOT EXISTS public.users
+	(
+		id_user integer NOT NULL,
+		username character varying(25) COLLATE pg_catalog."default",
+		CONSTRAINT user_pkey PRIMARY KEY (id_user)
+	)
+
+3. Melalui pgAdmin, sertakan screenshot seluruh tabel yang anda buat!
+Silahkan di-upload ke cloud (imgur, google drive, dsb) dan pastikan link tidak private!
+
+Tulis url screenshot di bawah sini:
+/* url disini */
+	https://drive.google.com/drive/folders/12Ot57nlxYZ9ak9TvyoJcsbFEqiduzKRw?usp=sharing
+
+4. Tuliskan query dari persoalan berikut:
+a. Saya ingin tahu seluruh daftar user.
+/* query disini */
+	SELECT id_user, username
+	FROM public.users;
+
+b. Saya ingin tahu seluruh daftar lagu beserta genrenya.
+/* query disini */
+	select songs.title as song, genre.name as gendre
+		from songs
+			join genre on songs.gendre=genre.id
+
+c. Saya ingin tahu daftar seluruh album dari "Noah".
+/* query disini */
+	select album.title as album, artist.name as artist
+		from album
+			join artist on album.artist=artist.id
+				where name='noah'
+
+d. Saya ingin tahu daftar seluruh lagu bergenre "Dangdut".
+/* query disini */
+	select songs.title as song_title, genre.name as genre_song
+		from songs
+			join genre on songs.gendre=genre.id
+				where name='dangdut'
+
+e. Saya ingin tahu daftar seluruh genre yang dipilih oleh user dengan username fadhlanmakarim.
+/* query disini */
+	SELECT genre.name as genre_song, users.username as name_user
+	FROM playlist
+		JOIN users ON playlist.user=users.id_user
+		JOIN songs ON playlist.song=songs.id_song
+		JOIN genre ON songs.gendre=genre.id
+			WHERE username='fadhlanmakarim.'
